@@ -1,0 +1,11 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: python manage.py runserver
+    container_name: tasks-to-habit
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
