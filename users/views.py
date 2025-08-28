@@ -1,3 +1,55 @@
 from django.shortcuts import render
+from google_tasks import get_authorization_url_for_signup, get_credentials_from_callback, get_authorization_url_for_signin
+from django.http import HttpResponseRedirect
+
+from google_tasks.main import get_user_info
+from .models import GoogleOAuthState, User, GoogleOAuthCredentials
+from django.contrib.auth import login
+import time
+
 
 # Create your views here.
+def signup_view(request):
+    return render(request, "users/signup.html")
+
+def signin_view(request):
+    return render(request, "users/signin.html")
+
+def google_oauth_initiate_signup(request):
+    authorization_url, state = get_authorization_url_for_signup()
+    GoogleOAuthState.objects.create(state=state)
+    return HttpResponseRedirect(authorization_url)
+
+def google_oauth_initiate_login(request):
+    authorization_url, state = get_authorization_url_for_signin()
+    GoogleOAuthState.objects.create(state=state)
+    return HttpResponseRedirect(authorization_url)
+
+def google_oauth_callback(request):
+    url = request.build_absolute_uri()
+    storedState = GoogleOAuthState.objects.get(state=request.GET.get("state"))
+    if not storedState or storedState.is_used or time.time() > storedState.valid_until:
+        return HttpResponseRedirect("/user/login")  # Invalid state, redirect to login
+
+    credentials = get_credentials_from_callback(url)
+
+    user_info = get_user_info(credentials.token, credentials.refresh_token, credentials.token_uri)
+
+    user,created = User.objects.get_or_create(username=user_info["name"], email=user_info["email"])
+    if created:
+        user.set_unusable_password()
+        user.save()
+    OAuthCred, created = GoogleOAuthCredentials.objects.update_or_create(
+        user=user,
+        defaults={
+            "access_token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "token_uri": credentials.token_uri,
+            "scopes": ",".join(credentials.scopes),
+        },
+    )
+
+    login(request, user)
+    return HttpResponseRedirect(
+        "/"
+    )

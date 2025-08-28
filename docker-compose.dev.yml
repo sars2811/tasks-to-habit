@@ -12,3 +12,8 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
+    develop:
+      watch:
+        - action: restart
+          path: ./
+          target: ./code
