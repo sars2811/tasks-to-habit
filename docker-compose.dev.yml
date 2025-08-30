@@ -12,6 +12,8 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
+    stdin_open: true
+    tty: true
     develop:
       watch:
         - action: restart
