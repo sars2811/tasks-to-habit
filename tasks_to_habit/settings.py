@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "users",
     "tasks",
+    "django_crontab",
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,11 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
+
+CRONJOBS = [
+    (
+        "0 2 * * *",
+        "tasks.management.commands.fetch_tasks",
+        ">> /code/log/django/fetch_tasks.log",
+    )
+]

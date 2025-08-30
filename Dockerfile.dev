@@ -1,4 +1,6 @@
 FROM python:3.10-slim
+# Install cron
+RUN apt-get update && apt-get install -y cron
 ENV PYTHONUNBUFFERED 1
 WORKDIR /code
 COPY requirements-dev.txt .

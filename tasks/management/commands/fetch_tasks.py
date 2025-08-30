@@ -4,8 +4,6 @@ from tasks.models import TaskList, Task, TaskStatus
 from google_apis import get_tasks_in_tasklist
 from django.core.paginator import Paginator
 
-import ipdb
-
 USER_BATCH_SIZE = 10
 
 
@@ -18,7 +16,6 @@ class Command(BaseCommand):
         for i in users_paginator.page_range:
             users_page = users_paginator.page(i)
             self.stdout.write(f"Processing user batch {i}/{users_paginator.num_pages}")
-            ipdb.set_trace(context=5)
             for user in users_page:
                 task_lists = TaskList.objects.filter(
                     user=user, to_track=True, is_active=True

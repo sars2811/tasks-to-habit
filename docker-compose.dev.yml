@@ -19,3 +19,20 @@ services:
         - action: restart
           path: ./
           target: ./code
+
+  cron:
+      build:
+        context: .
+        dockerfile: Dockerfile.dev
+      entrypoint: ./entrypoint-cron.sh
+      container_name: tasks-to-habit-cron
+      volumes:
+        - .:/code
+      environment:
+        - PUID=1000
+        - PGID=1000
+      develop:
+        watch:
+          - action: restart
+            path: ./
+            target: ./code
