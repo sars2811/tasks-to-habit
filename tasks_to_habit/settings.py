@@ -129,7 +129,9 @@ AUTH_USER_MODEL = "users.User"
 CRONJOBS = [
     (
         "0 2 * * *",
-        "tasks.management.commands.fetch_tasks",
+        "django.core.management.call_command",
+        ["fetch_tasks"],
+        {},
         ">> /code/log/django/fetch_tasks.log",
     )
 ]
