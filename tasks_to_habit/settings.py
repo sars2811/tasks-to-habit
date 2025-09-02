@@ -133,5 +133,12 @@ CRONJOBS = [
         ["fetch_tasks"],
         {},
         ">> /code/log/django/fetch_tasks.log",
-    )
+    ),
+    (
+        "30 23 * * *",
+        "django.core.management.call_command",
+        ["fetch_tasks"],
+        {},
+        ">> /code/log/django/fetch_tasks.log",
+    ),
 ]
