@@ -6,7 +6,13 @@ import datetime
 
 
 class User(AbstractUser):
-    pass
+    auth_id = models.CharField(
+        max_length=255,
+        help_text="A unique token for the user, used for authentication.",
+        null=True,
+        db_index=True,
+    )
+
 
 class GoogleOAuthCredentials(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

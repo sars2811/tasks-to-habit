@@ -12,6 +12,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
+      - TZ=Asia/Kolkata
     stdin_open: true
     tty: true
     develop:
@@ -19,6 +20,7 @@ services:
         - action: restart
           path: ./
           target: ./code
+    restart: unless-stopped
 
   cron:
       build:
@@ -37,3 +39,4 @@ services:
           - action: restart
             path: ./
             target: ./code
+      restart: unless-stopped

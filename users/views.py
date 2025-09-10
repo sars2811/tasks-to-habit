@@ -41,34 +41,30 @@ def google_oauth_callback(request):
         or storedState.is_used
         or timezone.now() > storedState.valid_until
     ):
-        return HttpResponseRedirect("/user/login")  # Invalid state, redirect to login
+        return HttpResponseRedirect("/user/signin")  # Invalid state, redirect to signin
 
     storedState.is_used = True
     storedState.save()
 
     credentials = get_credentials_from_callback(url)
 
-    user_info = get_user_info(
-        credentials.token, credentials.refresh_token, credentials.token_uri
-    )
+    user_info = get_user_info(credentials)
 
-    user, created = User.objects.get_or_create(
-        username=user_info["name"], email=user_info["email"]
-    )
+    user, created = User.objects.get_or_create(auth_id=user_info["sub"])
     if created:
         user.set_unusable_password()
         user.save()
 
-    defaults = {
+    default_credentials = {
         "access_token": credentials.token,
         "token_uri": credentials.token_uri,
         "scopes": ",".join(credentials.scopes),
     }
     if credentials.refresh_token:
-        defaults["refresh_token"] = credentials.refresh_token
+        default_credentials["refresh_token"] = credentials.refresh_token
     OAuthCred, created = GoogleOAuthCredentials.objects.update_or_create(
         user=user,
-        defaults=defaults,
+        defaults=default_credentials,
     )
 
     login(request, user)

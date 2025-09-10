@@ -2,8 +2,10 @@ import os
 from dotenv import load_dotenv
 from google_auth_oauthlib.flow import Flow
 from google.oauth2.credentials import Credentials
+from google.oauth2.id_token import verify_oauth2_token
 from googleapiclient.discovery import build
 from users.models import GoogleOAuthCredentials
+from google.auth.transport import requests
 
 load_dotenv()
 
@@ -11,7 +13,6 @@ CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 SCOPES = [
     "https://www.googleapis.com/auth/tasks.readonly",
-    "https://www.googleapis.com/auth/userinfo.email",
     "openid",
 ]
 
@@ -101,12 +102,9 @@ def get_credentials_from_callback(response_url):
     return flow.credentials
 
 
-def get_user_info(access_token, refresh_token, token_uri):
-    credentials = get_credentials_object(access_token, refresh_token, token_uri)
-    oauth2_client = build("oauth2", "v2", credentials=credentials)
-    user_info = oauth2_client.userinfo().get().execute()
-    oauth2_client.close()
-    return user_info
+def get_user_info(credentials: Credentials):
+    id_token = verify_oauth2_token(credentials.id_token, request=requests.Request)
+    return id_token
 
 
 def get_google_tasks_list(user):

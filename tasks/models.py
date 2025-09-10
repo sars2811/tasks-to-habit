@@ -19,9 +19,7 @@ class TaskStatus(models.TextChoices):
 
 
 class Task(models.Model):
-    task_id = models.CharField(
-        max_length=50
-    )  # Primary key removed to allow multiple tasks with same id for POC.
+    task_id = models.CharField(max_length=50)
     title = models.CharField(max_length=255)
     due = models.DateTimeField(blank=True, null=True)
     status = models.CharField(
@@ -34,6 +32,11 @@ class Task(models.Model):
     )
     deleted = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["task_id", "due"]),
+        ]
 
     def __str__(self):
         return f"{self.title}_{self.due}"
