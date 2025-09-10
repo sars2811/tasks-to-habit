@@ -4,6 +4,7 @@ from tasks.models import TaskList, Task
 from .forms import TaskListTrackingForm
 from django.http import HttpResponseRedirect
 from django.forms import formset_factory
+from django.utils import timezone
 
 
 def get_task_lists_view(request):
@@ -63,8 +64,29 @@ def get_task_lists_view(request):
 
 
 def tasks_home_view(request):
-    tasks = Task.objects.filter(task_list__user=request.user).all()
-    if tasks:
-        context = {"tasks": tasks}
+    task_lists = TaskList.objects.filter(user=request.user, to_track=True).all()
+    all_tasks = []
+    for task_list in task_lists:
+        tasks_ids = (
+            Task.objects.filter(
+                task_list=task_list, deleted=False, due__date=timezone.localdate()
+            )
+            .values("task_id")
+            .all()
+        )
+        for task_id in tasks_ids:
+            task_instances = Task.objects.filter(
+                task_list=task_list, task_id=task_id["task_id"], deleted=False
+            ).order_by("-due")
+            if task_instances:
+                sliced_task_instances = task_instances[:30]
+                all_tasks.append(
+                    [
+                        sliced_task_instances[0].title,
+                        [task.completed for task in sliced_task_instances],
+                    ]
+                )
+    if len(all_tasks) > 0:
+        context = {"tasks": all_tasks}
         return render(request, "tasks/home.html", context)
-    return render(request, "tasks/home.html", {})
+    return render(request, "tasks/lists")  # Redirect to task list selection if no tasks

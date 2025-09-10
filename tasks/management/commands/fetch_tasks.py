@@ -4,6 +4,7 @@ from tasks.models import TaskList, Task, TaskStatus
 from google_apis import get_tasks_in_tasklist, get_task
 from django.core.paginator import Paginator
 from datetime import date as Date
+from django.utils import timezone
 
 USER_BATCH_SIZE = 10
 
@@ -27,8 +28,11 @@ class Command(BaseCommand):
                     )
 
                     fetched_tasks = Task.objects.filter(
-                        task_list=task_list, due__date=Date.today(), deleted=False
-                    ).all()
+                        task_list=task_list,
+                        due__date=timezone.localdate(),
+                        deleted=False,
+                    )
+
                     fetched_tasks_ids = [task.task_id for task in fetched_tasks]
                     upstream_tasks = get_tasks_in_tasklist(user, task_list.id)
 
@@ -49,7 +53,7 @@ class Command(BaseCommand):
                             task_data["id"] not in fetched_tasks_ids
                             and task_data["due"]
                             and Date.fromisoformat(task_data["due"][:10])
-                            == Date.today()
+                            == timezone.localdate()
                         ):
                             Task.objects.create(
                                 task_id=task_data["id"],
