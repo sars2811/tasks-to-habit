@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from users.models import User
 from tasks.models import TaskList, Task, TaskStatus
-from google_apis import get_tasks_in_tasklist
+from google_apis import get_tasks_in_tasklist, get_task
 from django.core.paginator import Paginator
+from datetime import date as Date
 
 USER_BATCH_SIZE = 10
 
@@ -24,19 +25,43 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f"Fetching tasks for user: {user.username}, Task List: {task_list.name}"
                     )
-                    tasks = get_tasks_in_tasklist(user, task_list.id)
-                    for task_data in tasks:
-                        task = Task.objects.create(
-                            task_id=task_data["id"],
-                            title=task_data.get("title", ""),
-                            due=task_data.get("due", None),
-                            status=task_data.get("status", ""),
-                            completed=task_data.get("status", "needsAction")
-                            == TaskStatus.COMPLETED,
-                            completed_at=task_data.get("completed", None),
-                            task_list=task_list,
-                            deleted=False,
-                        ).save()
+
+                    fetched_tasks = Task.objects.filter(
+                        task_list=task_list, due__date=Date.today(), deleted=False
+                    ).all()
+                    fetched_tasks_ids = [task.task_id for task in fetched_tasks]
+                    upstream_tasks = get_tasks_in_tasklist(user, task_list.id)
+
+                    for task in fetched_tasks:
+                        updated_task_data = get_task(user, task_list.id, task.task_id)
+                        task.status = updated_task_data.get("status", task.status)
+                        task.completed = (
+                            updated_task_data.get("status", task.status)
+                            == TaskStatus.COMPLETED
+                        )
+                        task.completed_at = updated_task_data.get(
+                            "completed", task.completed_at
+                        )
+                        task.save()
+
+                    for task_data in upstream_tasks:
+                        if (
+                            task_data["id"] not in fetched_tasks_ids
+                            and task_data["due"]
+                            and Date.fromisoformat(task_data["due"][:10])
+                            == Date.today()
+                        ):
+                            Task.objects.create(
+                                task_id=task_data["id"],
+                                title=task_data.get("title", ""),
+                                due=task_data.get("due", None),
+                                status=task_data.get("status", ""),
+                                completed=task_data.get("status", "needsAction")
+                                == TaskStatus.COMPLETED,
+                                completed_at=task_data.get("completed", None),
+                                task_list=task_list,
+                                deleted=False,
+                            ).save()
                     self.stdout.write(
                         f"Completed fetching tasks for Task List: {task_list.name}"
                     )

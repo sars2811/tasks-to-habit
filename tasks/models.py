@@ -38,5 +38,8 @@ class Task(models.Model):
             models.Index(fields=["task_id", "due"]),
         ]
 
+        get_latest_by = "due"
+        unique_together = [["task_list", "task_id", "due"]]
+
     def __str__(self):
         return f"{self.title}_{self.due}"

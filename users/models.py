@@ -26,12 +26,17 @@ class GoogleOAuthCredentials(models.Model):
 
 
 # Model to store OAuth state parameters, just to verify correct state. Not related to User directly.
-# TODO: Add index for state and created_at for cleanup purposes.
 class GoogleOAuthState(models.Model):
     state = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
     valid_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["state"]),
+            models.Index(fields=["created_at"]),
+        ]
 
 
 @receiver(post_save, sender=GoogleOAuthState)

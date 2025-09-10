@@ -121,3 +121,11 @@ def get_tasks_in_tasklist(user, tasklist_id):
     tasks = tasks_service.tasks().list(tasklist=tasklist_id).execute()
     tasks_service.close()
     return tasks.get("items", [])
+
+
+def get_task(user, tasklist_id, task_id):
+    credentials = get_stored_credentials(user)
+    tasks_service = build("tasks", "v1", credentials=credentials)
+    task = tasks_service.tasks().get(tasklist=tasklist_id, task=task_id).execute()
+    tasks_service.close()
+    return task
