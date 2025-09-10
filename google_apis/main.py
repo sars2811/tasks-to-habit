@@ -103,7 +103,7 @@ def get_credentials_from_callback(response_url):
 
 
 def get_user_info(credentials: Credentials):
-    id_token = verify_oauth2_token(credentials.id_token, request=requests.Request)
+    id_token = verify_oauth2_token(credentials.id_token, request=requests.Request())
     return id_token
 
 
