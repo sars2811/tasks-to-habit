@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("user/", include("users.urls")),  # Include URLs from the users app
     path("task/", include("tasks.urls")),  # Include URLs from the tasks app
+    path("habit/", include("habits.urls")),  # Include URLs from the habits app
 ]
