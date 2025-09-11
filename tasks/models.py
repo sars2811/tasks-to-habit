@@ -20,7 +20,7 @@ class TaskStatus(models.TextChoices):
 
 class Task(models.Model):
     task_id = models.CharField(max_length=50)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=1024)
     due = models.DateTimeField(blank=True, null=True)
     status = models.CharField(
         max_length=20, choices=TaskStatus.choices, default=TaskStatus.NEEDS_ACTION
@@ -32,6 +32,9 @@ class Task(models.Model):
     )
     deleted = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
+    associated_habit = models.ForeignKey(
+        "habits.Habit", on_delete=models.SET_NULL, blank=True, null=True
+    )
 
     class Meta:
         indexes = [

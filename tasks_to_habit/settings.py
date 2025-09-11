@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "users",
     "tasks",
     "django_crontab",
+    "habits",
 ]
 
 MIDDLEWARE = [
